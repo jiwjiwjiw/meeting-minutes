@@ -1,7 +1,6 @@
 {
   "timeZone": "Europe/Paris",
   "dependencies": {
-<<<<<<< HEAD
     "enabledAdvancedServices": [
       {
         "userSymbol": "Drive",
@@ -9,8 +8,6 @@
         "serviceId": "drive"
       }
     ]
-=======
->>>>>>> e2465dcfaeef62b48decadfc9349827ed3fbcc1c
   },
   "exceptionLogging": "STACKDRIVER",
   "runtimeVersion": "V8"
