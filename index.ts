@@ -5,7 +5,6 @@ function updateValidation() {
   validationHandler.add(new Validation('Réunions', 'D2:D', 'Personnes', 'A2:A'))
   validationHandler.update()
 }
-let validationHandler = new ValidationHandler
 
 function onOpen() {
     let ui = SpreadsheetApp.getUi();
@@ -13,11 +12,11 @@ function onOpen() {
       .addItem('Envoi ordre du jour', 'onSendMeetingAgenda')
       .addItem('Génération procès-verbal', 'onGenerateMeetingMinutes')
       .addToUi();
-    validationHandler.update()
+      updateValidation()
     }
 
 function onEdit(e) {
-    validationHandler.update(e.range)
+  updateValidation()
 }
 
 function onSendMeetingAgenda() {
