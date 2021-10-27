@@ -61,7 +61,7 @@ class Parser {
                 const assignee = this.people.find(x => x.acronym === t[0])
                 tasks.push(new Task(assignee, t[1], t[2]))
             })
-            const topic = new Topic(row[0], meeting, author, row[3], row[4], row[5], row[6], tasks)
+            const topic = new Topic(row[0], meeting, author, row[3], row[4], row[5], row[6], row[7], tasks)
             this.topics.push(topic)
             if(meeting) meeting.addTopic(topic)
             this._tasks = this.tasks.concat(tasks)
