@@ -1,10 +1,12 @@
-function updateValidation() {
+function updateValidation(modifiedRange: GoogleAppsScript.Spreadsheet.Range = undefined) {
   let validationHandler = new ValidationHandler
   validationHandler.add(new Validation('Sujets', 'B2:B', 'Réunions', 'A2:A', false, ['à planifier']))
   validationHandler.add(new Validation('Sujets', 'C2:C', 'Personnes', 'A2:A'))
   validationHandler.add(new Validation('Réunions', 'D2:D', 'Personnes', 'A2:A'))
   validationHandler.add(new Validation('Sujets', 'D2:D', 'Sujets', 'D2:D', true))
-  validationHandler.update()
+  validationHandler.add(new Validation('Tâches', 'A2:A', 'Personnes', 'A2:A'))
+  validationHandler.add(new Validation('Tâches', 'D2:D', '', '', false, ['à faire', 'fait', 'en attente']))
+  validationHandler.update(modifiedRange)
 }
 
 function onOpen() {
@@ -17,7 +19,7 @@ function onOpen() {
     }
 
 function onEdit(e) {
-  updateValidation()
+  updateValidation(e)
 }
 
 function onSendMeetingAgenda() {

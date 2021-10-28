@@ -55,16 +55,16 @@ class Parser {
         topicsSheetValues.forEach(row => {
             let meeting = this.meetings.find(x => x.date === row[0])
             const author = this.people.find(x => x.acronym === row[1])
-            let tasks: Task[] = []
-            row[7].trim().split('\n').forEach(task => {
-                let t = task.trim().split(':').map(s => s.trim())
-                const assignee = this.people.find(x => x.acronym === t[0])
-                tasks.push(new Task(assignee, t[1], t[2]))
-            })
-            const topic = new Topic(row[0], meeting, author, row[3], row[4], row[5], row[6], row[7], tasks)
+            // let tasks: Task[] = []
+            // row[7].trim().split('\n').forEach(task => {
+            //     let t = task.trim().split(':').map(s => s.trim())
+            //     const assignee = this.people.find(x => x.acronym === t[0])
+            //     tasks.push(new Task(assignee, t[1], t[2]))
+            // })
+            const topic = new Topic(row[0], meeting, author, row[3], row[4], row[5], row[6], row[7])
             this.topics.push(topic)
             if(meeting) meeting.addTopic(topic)
-            this._tasks = this.tasks.concat(tasks)
+            // this._tasks = this.tasks.concat(tasks)
         })
     }
 }

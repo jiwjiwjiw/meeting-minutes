@@ -1,8 +1,9 @@
 class Task {
     constructor(
-        private assignee: Person,
-        private description: string,
-        private dueDate: Date
+        readonly assignee: Person,
+        readonly dueDate: Date,
+        readonly description: string,
+        readonly status: string
     ) {
         
     }

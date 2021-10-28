@@ -7,7 +7,6 @@ class Topic {
         readonly title: string,
         readonly description: string,
         readonly discussions: string,
-        readonly decisions: string,
-        readonly tasks: Task[]) {
+        readonly decisions: string) {
     }
 }
