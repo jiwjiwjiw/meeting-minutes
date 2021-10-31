@@ -19,7 +19,7 @@ function onOpen() {
     }
 
 function onEdit(e) {
-  updateValidation(e)
+  updateValidation(e.range)
 }
 
 function onSendMeetingAgenda() {
@@ -74,6 +74,9 @@ function onGenerateMeetingMinutes() {
   replacePlaceholderByList('%PRESENTS%', meeting.attending, x => `${x.name} (${x.acronym})`);
   replacePlaceholderByList('%EXCUSES%', meeting.excused, x => `${x.name} (${x.acronym})`);
   replacePlaceholderByList('%ABSENTS%', meeting.missing, x => `${x.name} (${x.acronym})`);
+
+  // get template for topics
+
 
   // generate pdf
   fileToEdit.saveAndClose()
