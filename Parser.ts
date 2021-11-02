@@ -42,8 +42,8 @@ class Parser {
         const topicsSheetValues = SpreadsheetApp.getActive().getSheetByName('Sujets').getDataRange().getValues()
         topicsSheetValues.shift() // shift removes first line that contains headings
         topicsSheetValues.forEach(row => {
-            let meeting = this.meetings.find(x => x.date === row[0])
-            const author = this.people.find(x => x.acronym === row[1])
+            let meeting = this.meetings.find(x => x.date.valueOf() === (new Date(row[1])).valueOf())
+            const author = this.people.find(x => x.acronym === row[2])
             const topic = new Topic(row[0], meeting, author, row[3], row[4], row[5], row[6], row[7])
             this.topics.push(topic)
             if (meeting)

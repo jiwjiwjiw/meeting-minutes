@@ -1,5 +1,5 @@
 class Meeting {
-private topics: Topic[] = []
+readonly topics: Topic[] = []
 
     constructor(
         readonly date: Date,

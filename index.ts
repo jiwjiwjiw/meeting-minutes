@@ -56,27 +56,69 @@ function onGenerateMeetingMinutes() {
   // if (currentId) DriveApp.getFileById(currentId).setTrashed(true)
 
   // create new file from template
-  let templateFile = DriveApp.getFileById('1us4ErUoIChWcHvfM4tNDHfMhWb0yQrSw6ajV4gulu1c');
-  let destinationFolder = DriveApp.getFolderById('1jWBay2PXXePEtcmBd6A_mYQZ-cqhZzDw');
+  let templateFile = DriveApp.getFileById('1us4ErUoIChWcHvfM4tNDHfMhWb0yQrSw6ajV4gulu1c')
+  let destinationFolder = DriveApp.getFolderById('1jWBay2PXXePEtcmBd6A_mYQZ-cqhZzDw')
   const fileName = `Réunion du ${meeting.date.toLocaleDateString()}`
-  let newFile = templateFile.makeCopy(fileName, destinationFolder);
-  var fileToEdit = DocumentApp.openById(newFile.getId());
+  let newFile = templateFile.makeCopy(fileName, destinationFolder)
+  var fileToEdit = DocumentApp.openById(newFile.getId())
 
   // replace placeholders in file
-  let docBody = fileToEdit.getBody();
+  let docBody = fileToEdit.getBody()
+  let docHeader = fileToEdit.getHeader()
+  let docFooter = fileToEdit.getFooter()
   let now = new Date()
-  docBody.replaceText('%OBJET%', meeting.subject); 
-  docBody.replaceText('%DATE_REUNION%', meeting.date.toLocaleDateString()); 
-  docBody.replaceText('%LIEU%', meeting.venue); 
-  docBody.replaceText('%DATE_REDACTION%', now.toLocaleDateString());
-  docBody.replaceText('%AUTEUR%', meeting.author.name);
+  docBody.replaceText('%OBJET%', meeting.subject)
+  docBody.replaceText('%DATE_REUNION%', meeting.date.toLocaleDateString())
+  docBody.replaceText('%LIEU%', meeting.venue)
+  docBody.replaceText('%DATE_REDACTION%', now.toLocaleDateString())
+  docBody.replaceText('%AUTEUR%', meeting.author.name)
+  docHeader.replaceText('%OBJET%', meeting.subject)
+  docHeader.replaceText('%DATE_REUNION%', meeting.date.toLocaleDateString())
+  docHeader.replaceText('%LIEU%', meeting.venue)
+  docHeader.replaceText('%DATE_REDACTION%', now.toLocaleDateString())
+  docHeader.replaceText('%AUTEUR%', meeting.author.name)
+  docFooter.replaceText('%OBJET%', meeting.subject)
+  docFooter.replaceText('%DATE_REUNION%', meeting.date.toLocaleDateString())
+  docFooter.replaceText('%LIEU%', meeting.venue)
+  docFooter.replaceText('%DATE_REDACTION%', now.toLocaleDateString())
+  docFooter.replaceText('%AUTEUR%', meeting.author.name)
   
-  replacePlaceholderByList('%PRESENTS%', meeting.attending, x => `${x.name} (${x.acronym})`);
-  replacePlaceholderByList('%EXCUSES%', meeting.excused, x => `${x.name} (${x.acronym})`);
-  replacePlaceholderByList('%ABSENTS%', meeting.missing, x => `${x.name} (${x.acronym})`);
+  replacePlaceholderByList('%PRESENTS%', meeting.attending, x => `${x.name} (${x.acronym})`)
+  replacePlaceholderByList('%EXCUSES%', meeting.excused, x => `${x.name} (${x.acronym})`)
+  replacePlaceholderByList('%ABSENTS%', meeting.missing, x => `${x.name} (${x.acronym})`)
 
-  // get template for topics
-
+  // add topics
+  const topicsPlaceholderParagraphElement = docBody
+    .findText('%SUJETS%') // find RangeElement containing text
+    .getElement() // find corresponding TEXT Element
+    .getParent() // find containing PARAGRAPH Element
+  let index = docBody.getChildIndex(topicsPlaceholderParagraphElement)
+  meeting.topics.forEach(topic => {
+    docBody
+      .insertParagraph(++index, topic.title)
+      .setHeading(DocumentApp.ParagraphHeading.HEADING2)
+    if(topic.category) {
+      docBody.insertParagraph(++index, `Catégorie : ${topic.category}`)
+    }
+    if(topic.description) {
+      docBody
+        .insertParagraph(++index, 'Description')
+        .setHeading(DocumentApp.ParagraphHeading.HEADING3)
+      docBody.insertParagraph(++index, topic.description)
+    }
+    if(topic.discussions) {
+      docBody
+        .insertParagraph(++index, 'Discussions')
+        .setHeading(DocumentApp.ParagraphHeading.HEADING3)
+      docBody.insertParagraph(++index, topic.discussions)
+    }
+    if(topic.decisions) {
+      docBody
+        .insertParagraph(++index, 'Decisions')
+        .setHeading(DocumentApp.ParagraphHeading.HEADING3)
+      docBody.insertParagraph(++index, topic.decisions)
+    }
+  })
 
   // generate pdf
   fileToEdit.saveAndClose()
