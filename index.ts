@@ -92,33 +92,73 @@ function onGenerateMeetingMinutes() {
     .findText('%SUJETS%') // find RangeElement containing text
     .getElement() // find corresponding TEXT Element
     .getParent() // find containing PARAGRAPH Element
-  let index = docBody.getChildIndex(topicsPlaceholderParagraphElement)
+  let topicIndex = docBody.getChildIndex(topicsPlaceholderParagraphElement)
   meeting.topics.forEach(topic => {
     docBody
-      .insertParagraph(++index, topic.title)
+      .insertParagraph(++topicIndex, topic.title)
       .setHeading(DocumentApp.ParagraphHeading.HEADING2)
     if(topic.category) {
-      docBody.insertParagraph(++index, `Catégorie : ${topic.category}`)
+      docBody.insertParagraph(++topicIndex, `Catégorie : ${topic.category}`)
     }
     if(topic.description) {
       docBody
-        .insertParagraph(++index, 'Description')
+        .insertParagraph(++topicIndex, 'Description')
         .setHeading(DocumentApp.ParagraphHeading.HEADING3)
-      docBody.insertParagraph(++index, topic.description)
+      docBody.insertParagraph(++topicIndex, topic.description)
     }
     if(topic.discussions) {
       docBody
-        .insertParagraph(++index, 'Discussions')
+        .insertParagraph(++topicIndex, 'Discussions')
         .setHeading(DocumentApp.ParagraphHeading.HEADING3)
-      docBody.insertParagraph(++index, topic.discussions)
+      docBody.insertParagraph(++topicIndex, topic.discussions)
     }
     if(topic.decisions) {
       docBody
-        .insertParagraph(++index, 'Decisions')
+        .insertParagraph(++topicIndex, 'Decisions')
         .setHeading(DocumentApp.ParagraphHeading.HEADING3)
-      docBody.insertParagraph(++index, topic.decisions)
+      docBody.insertParagraph(++topicIndex, topic.decisions)
     }
   })
+  topicsPlaceholderParagraphElement.removeFromParent()
+
+  // add tasks
+  const tasksTable = docBody
+    .findText('%TÂCHES%') // find RangeElement containing text
+    .getElement() // find corresponding Text Element
+    .getParent() // find containing Paragraph Element
+    .getParent() // find containing TableCell Element
+    .getParent() // find containing TableRow Element
+    .getParent() // find containing Table Element
+    .asTable()
+  // remove row with placeholder
+  tasksTable.removeRow(tasksTable.getNumRows() - 1)
+  parser.tasks
+    .filter(task => (task.status === 'à faire') || (task.status === 'en attente'))
+    .forEach(task => {
+    const row = tasksTable.appendTableRow()
+    row.appendTableCell(task.assignee.acronym)
+    row.appendTableCell(task.dueDate.toLocaleDateString())
+    row.appendTableCell(task.status)
+    row.appendTableCell(task.description)
+      if(task.dueDate < meeting.date) {
+        let styleOverdue = {}
+        styleOverdue[DocumentApp.Attribute.FOREGROUND_COLOR] = '#ff0000' // rouge
+        styleOverdue[DocumentApp.Attribute.BOLD] = false
+        row.setAttributes(styleOverdue)
+      }
+      else if(task.status === 'en attente') {
+        let styleBlocked = {}
+        styleBlocked[DocumentApp.Attribute.FOREGROUND_COLOR] = '#ff9900' // orange
+        styleBlocked[DocumentApp.Attribute.BOLD] = false
+        row.setAttributes(styleBlocked)
+      }
+      else {
+        let styleDefault = {}
+        styleDefault[DocumentApp.Attribute.FOREGROUND_COLOR] = '#000000' // black
+        styleDefault[DocumentApp.Attribute.BOLD] = false
+        row.setAttributes(styleDefault)
+      }
+    })
 
   // generate pdf
   fileToEdit.saveAndClose()
