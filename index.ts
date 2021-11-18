@@ -1,11 +1,12 @@
 function updateValidation(modifiedRange: GoogleAppsScript.Spreadsheet.Range = undefined) {
-  let validationHandler = new ValidationHandler
+  let validationHandler = ValidationHandler.getInstance()
   validationHandler.add(new Validation('Sujets', 'B2:B', 'Réunions', 'A2:A', false, ['à planifier']))
   validationHandler.add(new Validation('Sujets', 'C2:C', 'Personnes', 'A2:A'))
   validationHandler.add(new Validation('Réunions', 'D2:D', 'Personnes', 'A2:A'))
   validationHandler.add(new Validation('Sujets', 'D2:D', 'Sujets', 'D2:D', true))
   validationHandler.add(new Validation('Tâches', 'A2:A', 'Personnes', 'A2:A'))
   validationHandler.add(new Validation('Tâches', 'D2:D', '', '', false, ['à faire', 'fait', 'en attente']))
+  new EmailTemplate(new InvitationEmailTemplateParams).addValidation()
   validationHandler.update(modifiedRange)
 }
 
@@ -22,31 +23,72 @@ function onEdit(e) {
   updateValidation(e.range)
 }
 
+function getSelectedMeeting() : {date: Date, subject: string} {
+    const sheetName = SpreadsheetApp.getActiveSheet().getSheetName()
+    const currentRow = SpreadsheetApp.getCurrentCell().getRow()
+    if(sheetName === 'Réunions') {
+      const date = SpreadsheetApp.getActiveSheet().getRange('A' + currentRow).getValue()
+      const subject = SpreadsheetApp.getActiveSheet().getRange('B' + currentRow).getValue()
+      return {date, subject}
+    } else{
+      return null
+    }
+}
+
 function onSendMeetingAgenda() {
-    
+  const meetingInfo = getSelectedMeeting()
+  if (!meetingInfo) {
+    SpreadsheetApp.getUi().alert('Pour envoyer un ordre du jour, la ligne de la réunion concernée dans la feuille "Réunions" doit être sélectionnée.')
+    return
+  }
+  const meeting = Parser.getInstance().getMeeting(meetingInfo)
+  if (!meeting) {
+    SpreadsheetApp.getUi().alert(`Réunion avec date "${meetingInfo.date}" et sujet "${meetingInfo.subject}" introuvable!`)
+    return
+  }
+  const template = new EmailTemplate(new InvitationEmailTemplateParams)
+  
+  // check if mail quota is sufficient
+  if(MailApp.getRemainingDailyQuota() < meeting.attending.length) {
+    SpreadsheetApp.getUi().alert("Envoi impossible, quota d'envoi journalier dépassé!")
+    return
+  }
+  
+  const data = meeting.attending.map(person => {
+    return {person: person, meeting: meeting}
+  })
+  let report: string[] = []
+  for (const d of data) {
+    const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+    if (emailPattern.test(d.person.email)) {
+      const {subject, html} = template.constructHtml(d)
+      const html2 = template.insertData(html, d)
+      try {
+        MailApp.sendEmail({
+          to: d.person.email,
+          subject: subject,
+          htmlBody: html2
+        })
+        report.push(`Succès de l'envoi à ${d.person.name}.`)
+      } catch (e) {
+        report.push(`Echec de l'envoi à ${d.person.name} : ${e}.`)
+      }
+    } else {
+      report.push(`Echec de l'envoi à ${d.person.name} : Email '${d.person.email}' invalide.`)
+    }
+  }
+    SpreadsheetApp.getUi().showModalDialog(HtmlService.createHtmlOutput(`<ul> ${report.map(x => `<li>${x}</li>`).join('')}</ul>`), "Rapport d'envoi");
 }
 
 function onGenerateMeetingMinutes() {
-
-  // detect meeting for which meeting minutes must be generated
-  const sheetName = SpreadsheetApp.getActiveSheet().getSheetName()
-  const currentRow = SpreadsheetApp.getCurrentCell().getRow()
-  let date: Date
-  let subject: string
-  if(sheetName === 'Réunions') {
-    date = SpreadsheetApp.getActiveSheet().getRange('A' + currentRow).getValue()
-    subject = SpreadsheetApp.getActiveSheet().getRange('B' + currentRow).getValue()
-  } else{
-      SpreadsheetApp.getUi().alert('Pour envoyer un ordre du jour, la ligne de la réunion concernée dans la feuille "Réunions" doit être sélectionnée.')
-      return
+  const meetingInfo = getSelectedMeeting()
+  if (!meetingInfo) {
+    SpreadsheetApp.getUi().alert('Pour générer un procès verbal, la ligne de la réunion concernée dans la feuille "Réunions" doit être sélectionnée.')
+    return
   }
-
-  // get meeting data
-  const parser = new Parser
-  parser.parse()
-  const meeting = parser.meetings.find(x => x.date.getTime() === date.getTime() && x.subject === subject)
+  const meeting = Parser.getInstance().getMeeting(meetingInfo)
   if (!meeting) {
-    SpreadsheetApp.getUi().alert(`Réunion avec date "${date}" et sujet "${subject}" introuvable!`)
+    SpreadsheetApp.getUi().alert(`Réunion avec date "${meetingInfo.date}" et sujet "${meetingInfo.subject}" introuvable!`)
     return
   }
 
@@ -132,7 +174,7 @@ function onGenerateMeetingMinutes() {
     .asTable()
   // remove row with placeholder
   tasksTable.removeRow(tasksTable.getNumRows() - 1)
-  parser.tasks
+  Parser.getInstance().tasks
     .filter(task => (task.status === 'à faire') || (task.status === 'en attente'))
     .forEach(task => {
     const row = tasksTable.appendTableRow()
@@ -176,7 +218,7 @@ function onGenerateMeetingMinutes() {
 
   // add link to new document in spreadsheet
   const documentUrl = `https://docs.google.com/document/d/${pdfFile.getId()}/edit`
-  SpreadsheetApp.getActiveSheet().getRange('H' + currentRow).setValue(documentUrl)
+  SpreadsheetApp.getActiveSheet().getRange('H' + SpreadsheetApp.getCurrentCell().getRow()).setValue(documentUrl)
 
   // delete doc file
   newFile.setTrashed(true)

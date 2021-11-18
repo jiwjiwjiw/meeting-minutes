@@ -1,4 +1,5 @@
 class Parser {
+    private static _instance: Parser
     private _topics: Topic[] = []
     public get topics(): Topic[] {
         return this._topics
@@ -16,7 +17,21 @@ class Parser {
         return this._tasks
     }
 
-    parse(): void {
+    private constructor() {}
+
+    public static getInstance(): Parser {
+        if (!Parser._instance) {
+            Parser._instance = new Parser
+            Parser._instance.parse()
+        }
+        return Parser._instance
+    }
+
+    public getMeeting(meetingInfo: {date: Date, subject: string}) : Meeting {
+        return this._meetings.find(x => x.date.getTime() === meetingInfo.date.getTime() && x.subject === meetingInfo.subject)
+    }
+
+    private parse(): void {
         // IMPORTANT : order is critical since parsing of meetings depends on people data, parsing of topics depends on people and meetings data
         this.parsePeople()
         this.parseMeetings()
@@ -86,6 +101,6 @@ class Parser {
         this._people = []
         const peopleSheetValues = SpreadsheetApp.getActive().getSheetByName('Personnes').getDataRange().getValues()
         peopleSheetValues.shift() // shift removes first line that contains headings
-        peopleSheetValues.forEach(row => this.people.push(new Person(row[0], row[1], row[2])))
+        peopleSheetValues.forEach(row => this.people.push(new Person(row[0], row[1], row[2], row[3])))
     }
 }

@@ -1,14 +1,14 @@
 {
   "timeZone": "Europe/Paris",
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
   "dependencies": {
     "enabledAdvancedServices": [
       {
         "userSymbol": "Drive",
-        "version": "v2",
-        "serviceId": "drive"
+        "serviceId": "drive",
+        "version": "v2"
       }
     ]
-  },
-  "exceptionLogging": "STACKDRIVER",
-  "runtimeVersion": "V8"
+  }
 }

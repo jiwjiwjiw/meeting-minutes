@@ -3,12 +3,17 @@ class Person {
 
     constructor(
         readonly acronym: string,
-        readonly name: string,
+        readonly firstname: string,
+        readonly lastname: string,
         readonly email: string
     ) {
     }
-    
-    addTask(task: Task): void {
+
+    public get name() : string {
+        return `${this.firstname} ${this.lastname}`;
+    }
+
+    public addTask(task: Task): void {
         this.tasks.push(task)
     }
 }
