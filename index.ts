@@ -1,8 +1,9 @@
 function updateValidation(modifiedRange: GoogleAppsScript.Spreadsheet.Range = undefined) {
   let validationHandler = ValidationHandler.getInstance()
-  validationHandler.add(new Validation('Sujets', 'B2:B', 'Réunions', 'A2:A', false, ['à planifier']))
+  validationHandler.add(new Validation('Sujets', 'B2:B', '', '', false,
+    Parser.getInstance().meetings.map(x => x.id).concat('à planifier')))
   validationHandler.add(new Validation('Sujets', 'C2:C', 'Personnes', 'A2:A'))
-  validationHandler.add(new Validation('Réunions', 'D2:D', 'Personnes', 'A2:A'))
+  validationHandler.add(new Validation('Réunions', 'E2:E', 'Personnes', 'A2:A'))
   validationHandler.add(new Validation('Sujets', 'D2:D', 'Sujets', 'D2:D', true))
   validationHandler.add(new Validation('Tâches', 'A2:A', 'Personnes', 'A2:A'))
   validationHandler.add(new Validation('Tâches', 'D2:D', '', '', false, ['à faire', 'fait', 'en attente']))
@@ -23,27 +24,29 @@ function onEdit(e) {
   updateValidation(e.range)
 }
 
-function getSelectedMeeting() : {date: Date, subject: string} {
+function getSelectedMeeting() : string {
     const sheetName = SpreadsheetApp.getActiveSheet().getSheetName()
     const currentRow = SpreadsheetApp.getCurrentCell().getRow()
-    if(sheetName === 'Réunions') {
+    if(sheetName === 'Réunions' && currentRow !== 1) {
       const date = SpreadsheetApp.getActiveSheet().getRange('A' + currentRow).getValue()
-      const subject = SpreadsheetApp.getActiveSheet().getRange('B' + currentRow).getValue()
-      return {date, subject}
-    } else{
+      const time = SpreadsheetApp.getActiveSheet().getRange('B' + currentRow).getValue()
+      const subject = SpreadsheetApp.getActiveSheet().getRange('C' + currentRow).getValue()
+      const formattedDate = Utilities.formatDate(date, SpreadsheetApp.getActive().getSpreadsheetTimeZone(), 'dd.MM.yyyy')
+      return `${formattedDate} ${time} ${subject}`
+  } else{
       return null
     }
 }
 
 function onSendMeetingAgenda() {
-  const meetingInfo = getSelectedMeeting()
-  if (!meetingInfo) {
+  const meetingId = getSelectedMeeting()
+  if (!meetingId) {
     SpreadsheetApp.getUi().alert('Pour envoyer un ordre du jour, la ligne de la réunion concernée dans la feuille "Réunions" doit être sélectionnée.')
     return
   }
-  const meeting = Parser.getInstance().getMeeting(meetingInfo)
+  const meeting = Parser.getInstance().getMeeting(meetingId)
   if (!meeting) {
-    SpreadsheetApp.getUi().alert(`Réunion avec date "${meetingInfo.date}" et sujet "${meetingInfo.subject}" introuvable!`)
+    SpreadsheetApp.getUi().alert(`Réunion avec identifiant "${meetingId}" introuvable!`)
     return
   }
   const template = new EmailTemplate(new InvitationEmailTemplateParams)
@@ -63,10 +66,11 @@ function onSendMeetingAgenda() {
     if (emailPattern.test(d.person.email)) {
       const {subject, html} = template.constructHtml(d)
       const html2 = template.insertData(html, d)
+      const subject2 = template.insertData(subject, d)
       try {
         MailApp.sendEmail({
           to: d.person.email,
-          subject: subject,
+          subject: subject2,
           htmlBody: html2
         })
         report.push(`Succès de l'envoi à ${d.person.name}.`)
@@ -81,14 +85,14 @@ function onSendMeetingAgenda() {
 }
 
 function onGenerateMeetingMinutes() {
-  const meetingInfo = getSelectedMeeting()
-  if (!meetingInfo) {
+  const meetingId = getSelectedMeeting()
+  if (!meetingId) {
     SpreadsheetApp.getUi().alert('Pour générer un procès verbal, la ligne de la réunion concernée dans la feuille "Réunions" doit être sélectionnée.')
     return
   }
-  const meeting = Parser.getInstance().getMeeting(meetingInfo)
+  const meeting = Parser.getInstance().getMeeting(meetingId)
   if (!meeting) {
-    SpreadsheetApp.getUi().alert(`Réunion avec date "${meetingInfo.date}" et sujet "${meetingInfo.subject}" introuvable!`)
+    SpreadsheetApp.getUi().alert(`Réunion avec identifiant "${meetingId}" introuvable!`)
     return
   }
 
@@ -111,16 +115,19 @@ function onGenerateMeetingMinutes() {
   let now = new Date()
   docBody.replaceText('%OBJET%', meeting.subject)
   docBody.replaceText('%DATE_REUNION%', meeting.date.toLocaleDateString())
+  docBody.replaceText('%HEURE_REUNION%', meeting.date.toLocaleTimeString())
   docBody.replaceText('%LIEU%', meeting.venue)
   docBody.replaceText('%DATE_REDACTION%', now.toLocaleDateString())
   docBody.replaceText('%AUTEUR%', meeting.author.name)
   docHeader.replaceText('%OBJET%', meeting.subject)
   docHeader.replaceText('%DATE_REUNION%', meeting.date.toLocaleDateString())
+  docHeader.replaceText('%HEURE_REUNION%', meeting.date.toLocaleTimeString())
   docHeader.replaceText('%LIEU%', meeting.venue)
   docHeader.replaceText('%DATE_REDACTION%', now.toLocaleDateString())
   docHeader.replaceText('%AUTEUR%', meeting.author.name)
   docFooter.replaceText('%OBJET%', meeting.subject)
   docFooter.replaceText('%DATE_REUNION%', meeting.date.toLocaleDateString())
+  docFooter.replaceText('%HEURE_REUNION%', meeting.date.toLocaleTimeString())
   docFooter.replaceText('%LIEU%', meeting.venue)
   docFooter.replaceText('%DATE_REDACTION%', now.toLocaleDateString())
   docFooter.replaceText('%AUTEUR%', meeting.author.name)

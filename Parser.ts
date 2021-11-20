@@ -27,8 +27,8 @@ class Parser {
         return Parser._instance
     }
 
-    public getMeeting(meetingInfo: {date: Date, subject: string}) : Meeting {
-        return this._meetings.find(x => x.date.getTime() === meetingInfo.date.getTime() && x.subject === meetingInfo.subject)
+    public getMeeting(id: string) : Meeting {
+        return this._meetings.find(x => x.id === id)
     }
 
     private parse(): void {
@@ -57,7 +57,7 @@ class Parser {
         const topicsSheetValues = SpreadsheetApp.getActive().getSheetByName('Sujets').getDataRange().getValues()
         topicsSheetValues.shift() // shift removes first line that contains headings
         topicsSheetValues.forEach(row => {
-            let meeting = this.meetings.find(x => x.date.valueOf() === (new Date(row[1])).valueOf())
+            let meeting = this.meetings.find(x => x.id === row[1])
             const author = this.people.find(x => x.acronym === row[2])
             const topic = new Topic(row[0], meeting, author, row[3], row[4], row[5], row[6], row[7])
             this.topics.push(topic)
@@ -71,29 +71,29 @@ class Parser {
         const meetingsSheetValues = SpreadsheetApp.getActive().getSheetByName('Réunions').getDataRange().getValues()
         meetingsSheetValues.shift() // shift removes first line that contains headings
         meetingsSheetValues.forEach(row => {
-            const author = this.people.find(x => x.acronym === row[3])
-            const attendingAcronyms = row[4].trim().split(' ')
+            const author = this.people.find(x => x.acronym === row[4])
+            const attendingAcronyms = row[5].trim().split(' ')
             const attending: Person[] = []
             attendingAcronyms.forEach(acronym => {
                 const person = this.people.find(x => x.acronym === acronym)
                 if (person)
                     attending.push(person)
             })
-            const excusedAcronyms = row[5].trim().split(' ')
+            const excusedAcronyms = row[6].trim().split(' ')
             const excused: Person[] = []
             excusedAcronyms.forEach(acronym => {
                 const person = this.people.find(x => x.acronym === acronym)
                 if (person)
                     excused.push(person)
             })
-            const missingAcronyms = row[6].trim().split(' ')
+            const missingAcronyms = row[7].trim().split(' ')
             const missing: Person[] = []
             missingAcronyms.forEach(acronym => {
                 const person = this.people.find(x => x.acronym === acronym)
                 if (person)
                     missing.push(person)
             })
-            this.meetings.push(new Meeting(row[0], row[1], row[2], author, attending, excused, missing))
+            this.meetings.push(new Meeting(row[0], row[1], row[2], row[3], author, attending, excused, missing))
         })
     }
 
