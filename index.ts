@@ -57,7 +57,8 @@ function onSendMeetingAgenda() {
     return
   }
   
-  const data = meeting.attending.map(person => {
+  
+  const data = [].concat(meeting.attending, meeting.excused, meeting.missing).map(person => {
     return {person: person, meeting: meeting}
   })
   let report: string[] = []
