@@ -1,10 +1,10 @@
 function updateValidation(modifiedRange: GoogleAppsScript.Spreadsheet.Range = undefined) {
   let validationHandler = ValidationHandler.getInstance()
   validationHandler.add(new Validation('Sujets', 'B2:B', '', '', false,
-    Parser.getInstance().meetings.map(x => x.id).concat('à planifier', 'Divers')))
+    Parser.getInstance().meetings.map(x => x.id).concat('à planifier')))
   validationHandler.add(new Validation('Sujets', 'C2:C', 'Personnes', 'A2:A'))
   validationHandler.add(new Validation('Réunions', 'E2:E', 'Personnes', 'A2:A'))
-  validationHandler.add(new Validation('Sujets', 'D2:D', 'Sujets', 'D2:D', true))
+  validationHandler.add(new Validation('Sujets', 'D2:D', 'Sujets', 'D2:D', true, ['Divers']))
   validationHandler.add(new Validation('Tâches', 'A2:A', 'Personnes', 'A2:A'))
   validationHandler.add(new Validation('Tâches', 'D2:D', '', '', false, ['à faire', 'fait', 'en attente']))
   new EmailTemplate(new InvitationEmailTemplateParams).addValidation()
@@ -96,15 +96,17 @@ function onGenerateMeetingMinutes() {
     SpreadsheetApp.getUi().alert(`Réunion avec identifiant "${meetingId}" introuvable!`)
     return
   }
-
+  
   // delete current file in spreadsheet if existing
   // let sheet = SpreadsheetApp.getActiveSheet();
   // let currentId = sheet.getRange('H' + currentRow).getValue().match(/[-\w]{25,}(?!.*[-\w]{25,})/)
   // if (currentId) DriveApp.getFileById(currentId).setTrashed(true)
-
+  
   // create new file from template
-  let templateFile = DriveApp.getFileById('1us4ErUoIChWcHvfM4tNDHfMhWb0yQrSw6ajV4gulu1c')
-  let destinationFolder = DriveApp.getFolderById('1jWBay2PXXePEtcmBd6A_mYQZ-cqhZzDw')
+  const templateFileId = Parser.getInstance().params['modèle de procès verbal'].match(/[-\w]{25,}(?!.*[-\w]{25,})/)[0]
+  const outputFolderId = Parser.getInstance().params['dossier de génération'].match(/[-\w]{25,}(?!.*[-\w]{25,})/)[0]
+  let templateFile = DriveApp.getFileById(templateFileId)
+  let destinationFolder = DriveApp.getFolderById(outputFolderId)
   const fileName = `Réunion du ${meeting.date.toLocaleDateString()}`
   let newFile = templateFile.makeCopy(fileName, destinationFolder)
   var fileToEdit = DocumentApp.openById(newFile.getId())

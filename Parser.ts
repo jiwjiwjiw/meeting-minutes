@@ -1,3 +1,7 @@
+interface ParamsArray {
+    [index: string]: string
+}
+
 class Parser {
     private static _instance: Parser
     private _topics: Topic[] = []
@@ -16,6 +20,11 @@ class Parser {
     public get tasks(): Task[] {
         return this._tasks
     }
+    private _params: ParamsArray
+    public get params() : ParamsArray {
+        return this._params
+    }
+    
 
     private constructor() {}
 
@@ -37,6 +46,7 @@ class Parser {
         this.parseMeetings()
         this.parseTopics()
         this.parseTasks()
+        this.parseParams()
     }
 
     private parseTasks() {
@@ -102,5 +112,12 @@ class Parser {
         const peopleSheetValues = SpreadsheetApp.getActive().getSheetByName('Personnes').getDataRange().getValues()
         peopleSheetValues.shift() // shift removes first line that contains headings
         peopleSheetValues.forEach(row => this.people.push(new Person(row[0], row[1], row[2], row[3])))
+    }
+
+    private parseParams() {
+        this._params = {}
+        const peopleSheetValues = SpreadsheetApp.getActive().getSheetByName('Paramètres').getDataRange().getValues()
+        peopleSheetValues.shift() // shift removes first line that contains headings
+        peopleSheetValues.forEach(row => this.params[row[0]] = row[1])
     }
 }
