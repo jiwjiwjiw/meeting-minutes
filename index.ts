@@ -227,7 +227,7 @@ function onGenerateMeetingMinutes() {
   }
 
   // add link to new document in spreadsheet
-  const documentUrl = `https://docs.google.com/document/d/${pdfFile.getId()}/edit`
+  const documentUrl = `https://drive.google.com/file/d/${pdfFile.getId()}/view`
   SpreadsheetApp.getActiveSheet().getRange('I' + SpreadsheetApp.getCurrentCell().getRow()).setValue(documentUrl)
 
   // delete doc file
