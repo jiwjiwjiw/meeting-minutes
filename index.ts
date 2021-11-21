@@ -1,7 +1,7 @@
 function updateValidation(modifiedRange: GoogleAppsScript.Spreadsheet.Range = undefined) {
   let validationHandler = ValidationHandler.getInstance()
   validationHandler.add(new Validation('Sujets', 'B2:B', '', '', false,
-    Parser.getInstance().meetings.map(x => x.id).concat('à planifier')))
+    Parser.getInstance().meetings.map(x => x.id).concat('à planifier', 'Divers')))
   validationHandler.add(new Validation('Sujets', 'C2:C', 'Personnes', 'A2:A'))
   validationHandler.add(new Validation('Réunions', 'E2:E', 'Personnes', 'A2:A'))
   validationHandler.add(new Validation('Sujets', 'D2:D', 'Sujets', 'D2:D', true))
@@ -226,7 +226,7 @@ function onGenerateMeetingMinutes() {
 
   // add link to new document in spreadsheet
   const documentUrl = `https://docs.google.com/document/d/${pdfFile.getId()}/edit`
-  SpreadsheetApp.getActiveSheet().getRange('H' + SpreadsheetApp.getCurrentCell().getRow()).setValue(documentUrl)
+  SpreadsheetApp.getActiveSheet().getRange('I' + SpreadsheetApp.getCurrentCell().getRow()).setValue(documentUrl)
 
   // delete doc file
   newFile.setTrashed(true)

@@ -59,7 +59,7 @@ class Parser {
         topicsSheetValues.forEach(row => {
             let meeting = this.meetings.find(x => x.id === row[1])
             const author = this.people.find(x => x.acronym === row[2])
-            const topic = new Topic(row[0], meeting, author, row[3], row[4], row[5], row[6], row[7])
+            const topic = new Topic(row[0], meeting, author, row[3] === '' ? 'Divers' : row[3], row[4], row[5], row[6], row[7])
             this.topics.push(topic)
             if (meeting)
                 meeting.addTopic(topic)

@@ -1,0 +1,16 @@
+<ol>
+    <? for (d of data) { ?>
+        <li>
+            <h2><?= d.category ?></h2>
+            <ol>
+                <? for (t of d.topics) { ?>
+                    <li>
+                        <h3><?= t.title ?></h3>
+                        <p>Proposé par : <?= t.author.name ?></p>
+                        <p><?= t.description ?></p>
+                    </li>
+                <? } ?>
+            </ol>
+        </li>
+    <? } ?>
+</ol>

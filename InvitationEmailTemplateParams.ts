@@ -8,9 +8,17 @@ class InvitationEmailTemplateParams implements EmailTemplateParams {
         html = html.replaceAll('%EMAIL%', data.person.email)
         html = html.replaceAll('%OBJET%', data.meeting.subject)
         html = html.replaceAll('%DATE%', data.meeting.date.toLocaleDateString())
-        html = html.replaceAll('%HEURE%', 'inconnu')
+        html = html.replaceAll('%HEURE%', data.meeting.time)
         html = html.replaceAll('%LIEU%', data.meeting.venue)
-        html = html.replaceAll('%LISTE_SUJETS%', `<ol>${data.meeting.topics.map(x => `<li><h3>${x.title} (${x.author.name})</h3><p>${x.description}</p></li>`).join('')}</ol>`)
+
+        const htmlTemplate = HtmlService.createTemplateFromFile('ListeSujets')
+        const categories = [...new Set(data.meeting.topics.map(x => x.category))] // use Set to get unique values
+        htmlTemplate.data = categories.map(c => {
+            return {category: c, topics: data.meeting.topics.filter(t => t.category === c)}
+        })        
+        const htmlOutput = htmlTemplate.evaluate()
+        const generated = htmlOutput.getContent()
+        html = html.replaceAll('%LISTE_SUJETS%', generated)
         return html
     }
 
