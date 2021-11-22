@@ -220,7 +220,7 @@ function onGenerateMeetingMinutes() {
   if(destinationFolder.searchFiles(queryString).hasNext()) {
     pdfFile = destinationFolder.searchFiles(queryString).next()
     Drive.Files.update({
-      title: fileName, mimeType: 'application/pdf'
+      title: `${fileName}.pdf`, mimeType: 'application/pdf'
     }, pdfFile.getId(), docblob);
   } else {
     pdfFile = destinationFolder.createFile(docblob) 
