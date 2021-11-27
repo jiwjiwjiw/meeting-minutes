@@ -103,8 +103,8 @@ function onGenerateMeetingMinutes() {
   // if (currentId) DriveApp.getFileById(currentId).setTrashed(true)
   
   // create new file from template
-  const templateFileId = Parser.getInstance().params['modèle de procès verbal'].match(/[-\w]{25,}(?!.*[-\w]{25,})/)[0]
-  const outputFolderId = Parser.getInstance().params['dossier de génération'].match(/[-\w]{25,}(?!.*[-\w]{25,})/)[0]
+  const templateFileId = getDriveId(Parser.getInstance().params['modèle de procès verbal'])
+  const outputFolderId = getDriveId(Parser.getInstance().params['dossier de génération'])
   let templateFile = DriveApp.getFileById(templateFileId)
   let destinationFolder = DriveApp.getFolderById(outputFolderId)
   const fileName = `Réunion du ${meeting.date.toLocaleDateString()}`
