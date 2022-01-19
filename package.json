@@ -1,0 +1,30 @@
+{
+  "name": "meeting-minutes",
+  "version": "1.0.0",
+  "main": "dist/bundle.js",
+  "repository": "https://github.com/jiwjiwjiw/meeting-minutes.git",
+  "author": "Jean Iwanowski <jean.iwanowski@edelweissloisirs.ch>",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "b": "webpack --mode none",
+    "p": "clasp push",
+    "bw": "webpack --mode none -w",
+    "pw": "clasp push -w"
+  },
+  "devDependencies": {
+    "clean-webpack-plugin": "^4.0.0",
+    "copy-webpack-plugin": "^10.2.0",
+    "gas-webpack-plugin": "^2.1.0",
+    "standard": "^16.0.4",
+    "ts-loader": "^9.2.6",
+    "typescript": "^4.5.2",
+    "webpack": "^5.64.4",
+    "webpack-cli": "^4.9.1"
+  },
+  "dependencies": {
+    "@types/node": "^16.11.10",
+    "date-fns": "^2.28.0",
+    "lodash": "^4.17.21"
+  }
+}

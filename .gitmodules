@@ -1,3 +1,3 @@
-[submodule "sheets-tools"]
-	path = sheets-tools
+[submodule "src/sheets-tools"]
+	path = src/sheets-tools
 	url = https://github.com/jiwjiwjiw/sheets-tools.git
