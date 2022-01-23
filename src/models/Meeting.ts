@@ -1,25 +1,30 @@
-class Meeting {
-readonly topics: Topic[] = []
+import { Person } from './Person'
+import { Topic } from './Topic'
 
-    constructor(
-        readonly date: Date,
-        readonly time: string,
-        readonly subject: string,
-        readonly venue: string,
-        readonly author: Person,
-        readonly attending: Person[],
-        readonly excused: Person[],
-        readonly missing: Person[] ) {
-    }
+export class Meeting {
+  readonly topics: Topic[] = []
 
-    
-    public get id() : string {
-        const formattedDate = Utilities.formatDate(this.date, SpreadsheetApp.getActive().getSpreadsheetTimeZone(), 'dd.MM.yyyy')
-        return `${formattedDate} ${this.time} ${this.subject}`
-    }
-    
+  constructor (
+    readonly date: Date,
+    readonly time: string,
+    readonly subject: string,
+    readonly venue: string,
+    readonly author: Person | undefined,
+    readonly attending: Person[],
+    readonly excused: Person[],
+    readonly missing: Person[]
+  ) {}
 
-    addTopic(topic: Topic): void {
-        this.topics.push(topic)
-    }
+  public get id (): string {
+    const formattedDate = Utilities.formatDate(
+      this.date,
+      SpreadsheetApp.getActive().getSpreadsheetTimeZone(),
+      'dd.MM.yyyy'
+    )
+    return `${formattedDate} ${this.time} ${this.subject}`
+  }
+
+  addTopic (topic: Topic): void {
+    this.topics.push(topic)
+  }
 }
