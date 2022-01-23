@@ -6,6 +6,10 @@ import { EmailTemplate } from './sheets-tools/EmailTemplate'
 import { getDriveId } from './sheets-tools/helpers'
 import { Validation } from './sheets-tools/Validation'
 import { ValidationHandler } from './sheets-tools/ValidationHandler'
+;(global as any).onOpen = onOpen
+;(global as any).onEdit = onEdit
+;(global as any).onSendMeetingAgenda = onSendMeetingAgenda
+;(global as any).onGenerateMeetingMinutes = onGenerateMeetingMinutes
 
 function updateValidation (
   modifiedRange: GoogleAppsScript.Spreadsheet.Range | undefined = undefined
@@ -102,11 +106,21 @@ function onSendMeetingAgenda () {
     return
   }
 
-  const data: { person: Person; meeting: Meeting }[] = ([] as Person[])
-    .concat(meeting.attending, meeting.excused, meeting.missing)
-    .map(person => {
+  const concerned = ([] as Person[]).concat(
+    meeting.attending,
+    meeting.excused,
+    meeting.missing
+  )
+
+  const uniqueConcerned = [
+    ...new Map(concerned.map(item => [item['acronym'], item])).values()
+  ]
+
+  const data: { person: Person; meeting: Meeting }[] = uniqueConcerned.map(
+    person => {
       return { person: person, meeting: meeting }
-    })
+    }
+  )
   let report: string[] = []
   for (const d of data) {
     const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/

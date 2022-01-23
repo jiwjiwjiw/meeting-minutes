@@ -13,7 +13,7 @@ export class InvitationEmailTemplateParams implements EmailTemplateParams {
     html = html.replaceAll('%HEURE%', data.meeting.time)
     html = html.replaceAll('%LIEU%', data.meeting.venue)
 
-    const htmlTemplate = HtmlService.createTemplateFromFile('ListeSujets')
+    const htmlTemplate = HtmlService.createTemplateFromFile('dist/ListeSujets')
     const categories = [
       ...new Set(data.meeting.topics.map((x: { category: any }) => x.category))
     ] // use Set to get unique values
