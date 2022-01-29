@@ -312,7 +312,10 @@ function onGenerateMeetingMinutes () {
         mimeType: 'application/pdf'
       },
       pdfFile.getId(),
-      docblob
+      docblob,
+      {
+        supportsAllDrives: true
+      }
     )
   } else {
     pdfFile = destinationFolder.createFile(docblob)
