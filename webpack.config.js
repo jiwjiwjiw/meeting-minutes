@@ -29,7 +29,8 @@ const config = {
       patterns: [
         {
           from: 'src/**/*.html',
-          to: '[name][ext]'
+          to: '[name][ext]',
+          noErrorOnMissing: true
         }
       ]
     })

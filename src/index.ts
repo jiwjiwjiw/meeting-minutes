@@ -7,9 +7,9 @@ import { getDriveId } from './sheets-tools/helpers'
 import { Validation } from './sheets-tools/Validation'
 import { ValidationHandler } from './sheets-tools/ValidationHandler'
 ;(global as any).onOpen = onOpen
-;(global as any).onEdit = onEdit
 ;(global as any).onSendMeetingAgenda = onSendMeetingAgenda
 ;(global as any).onGenerateMeetingMinutes = onGenerateMeetingMinutes
+;(global as any).onAuthorizeScript = onAuthorizeScript
 
 function updateValidation (
   modifiedRange: GoogleAppsScript.Spreadsheet.Range | undefined = undefined
@@ -46,15 +46,61 @@ function updateValidation (
 
 function onOpen () {
   let ui = SpreadsheetApp.getUi()
-  ui.createMenu('Réunion')
-    .addItem('Envoi ordre du jour', 'onSendMeetingAgenda')
-    .addItem('Génération procès-verbal', 'onGenerateMeetingMinutes')
+  ui.createMenu('Actions')
+    .addItem('Autoriser le script', 'onAuthorizeScript')
+    .addItem('Envoyer ordre du jour', 'onSendMeetingAgenda')
+    .addItem('Générer procès-verbal', 'onGenerateMeetingMinutes')
     .addToUi()
   updateValidation()
 }
 
-function onEdit (e: any) {
-  updateValidation(e.range)
+function onAuthorizeScript () {
+  installOnOpenTriggerIfInexisting()
+  installOnEditTriggerIfInexisting()
+  installOnChangeTriggerIfInexisting()
+}
+
+function installOnEditTriggerIfInexisting () {
+  if (!checkIfTriggerExists(ScriptApp.EventType.ON_EDIT, 'updateModels')) {
+    ScriptApp.newTrigger('updateModels')
+      .forSpreadsheet(SpreadsheetApp.getActive())
+      .onEdit()
+      .create()
+  }
+}
+
+function installOnOpenTriggerIfInexisting () {
+  if (!checkIfTriggerExists(ScriptApp.EventType.ON_OPEN, 'updateModels')) {
+    ScriptApp.newTrigger('updateModels')
+      .forSpreadsheet(SpreadsheetApp.getActive())
+      .onOpen()
+      .create()
+  }
+}
+
+function installOnChangeTriggerIfInexisting () {
+  if (!checkIfTriggerExists(ScriptApp.EventType.ON_CHANGE, 'updateModels')) {
+    ScriptApp.newTrigger('updateModels')
+      .forSpreadsheet(SpreadsheetApp.getActive())
+      .onChange()
+      .create()
+  }
+}
+
+function checkIfTriggerExists (
+  eventType: GoogleAppsScript.Script.EventType,
+  handlerFunction: string
+) {
+  const triggers = ScriptApp.getProjectTriggers()
+  let triggerExists = false
+  triggers.forEach(function (trigger) {
+    if (
+      trigger.getEventType() === eventType &&
+      trigger.getHandlerFunction() === handlerFunction
+    )
+      triggerExists = true
+  })
+  return triggerExists
 }
 
 function getSelectedMeeting (): string {
@@ -243,19 +289,41 @@ function onGenerateMeetingMinutes () {
       docBody
         .insertParagraph(++topicIndex, 'Description')
         .setHeading(DocumentApp.ParagraphHeading.HEADING3)
-      docBody.insertParagraph(++topicIndex, topic.description)
+      topic.description
+        .split(/\r?\n/)
+        .filter(element => element)
+        .forEach(element => {
+          docBody
+            .insertParagraph(++topicIndex, element)
+            .setHeading(DocumentApp.ParagraphHeading.NORMAL)
+        })
     }
     if (topic.discussions) {
       docBody
         .insertParagraph(++topicIndex, 'Discussions')
         .setHeading(DocumentApp.ParagraphHeading.HEADING3)
-      docBody.insertParagraph(++topicIndex, topic.discussions)
+      topic.discussions
+
+        .split(/\r?\n/)
+        .filter(element => element)
+        .forEach(element => {
+          docBody
+            .insertParagraph(++topicIndex, element)
+            .setHeading(DocumentApp.ParagraphHeading.NORMAL)
+        })
     }
     if (topic.decisions) {
       docBody
         .insertParagraph(++topicIndex, 'Decisions')
         .setHeading(DocumentApp.ParagraphHeading.HEADING3)
-      docBody.insertParagraph(++topicIndex, topic.decisions)
+      topic.decisions
+        .split(/\r?\n/)
+        .filter(element => element)
+        .forEach(element => {
+          docBody
+            .insertParagraph(++topicIndex, element)
+            .setHeading(DocumentApp.ParagraphHeading.NORMAL)
+        })
     }
   })
   topicsPlaceholderParagraphElement.removeFromParent()
