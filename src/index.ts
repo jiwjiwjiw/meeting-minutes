@@ -239,19 +239,19 @@ function onGenerateMeetingMinutes () {
   let now = new Date()
   docBody.replaceText('%OBJET%', meeting.subject)
   docBody.replaceText('%DATE_REUNION%', meeting.date.toLocaleDateString())
-  docBody.replaceText('%HEURE_REUNION%', meeting.date.toLocaleTimeString())
+  docBody.replaceText('%HEURE_REUNION%', meeting.time)
   docBody.replaceText('%LIEU%', meeting.venue)
   docBody.replaceText('%DATE_REDACTION%', now.toLocaleDateString())
   docBody.replaceText('%AUTEUR%', meeting.author?.name ?? 'auteur')
   docHeader.replaceText('%OBJET%', meeting.subject)
   docHeader.replaceText('%DATE_REUNION%', meeting.date.toLocaleDateString())
-  docHeader.replaceText('%HEURE_REUNION%', meeting.date.toLocaleTimeString())
+  docHeader.replaceText('%HEURE_REUNION%', meeting.time)
   docHeader.replaceText('%LIEU%', meeting.venue)
   docHeader.replaceText('%DATE_REDACTION%', now.toLocaleDateString())
   docHeader.replaceText('%AUTEUR%', meeting.author?.name ?? 'auteur')
   docFooter.replaceText('%OBJET%', meeting.subject)
   docFooter.replaceText('%DATE_REUNION%', meeting.date.toLocaleDateString())
-  docFooter.replaceText('%HEURE_REUNION%', meeting.date.toLocaleTimeString())
+  docFooter.replaceText('%HEURE_REUNION%', meeting.time)
   docFooter.replaceText('%LIEU%', meeting.venue)
   docFooter.replaceText('%DATE_REDACTION%', now.toLocaleDateString())
   docFooter.replaceText('%AUTEUR%', meeting.author?.name ?? 'auteur')
@@ -343,6 +343,13 @@ function onGenerateMeetingMinutes () {
     .tasks.filter(
       task => task.status === 'à faire' || task.status === 'en attente'
     )
+    .sort((a, b) => {
+      if ((a.assignee?.acronym ?? '') < (b.assignee?.acronym ?? '')) return -1
+      if ((a.assignee?.acronym ?? '') > (b.assignee?.acronym ?? '')) return 1
+      if (a.dueDate < b.dueDate) return -1
+      if (a.dueDate > b.dueDate) return 1
+      return 0
+    })
     .forEach(task => {
       const row = tasksTable.appendTableRow()
       row.appendTableCell(task.assignee?.acronym ?? 'non défini')
@@ -403,10 +410,7 @@ function onGenerateMeetingMinutes () {
     list: any[],
     transform: Function
   ) {
-    let element = docBody
-      .findText(placeholder)
-      .getElement()
-      .getParent()
+    let element = docBody.findText(placeholder).getElement().getParent()
     let index = docBody.getChildIndex(element)
     element.removeFromParent()
     list.forEach(x =>
